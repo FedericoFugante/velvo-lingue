@@ -139,6 +139,16 @@ body{
 .opt.correct{border-color:var(--success);background:#132116;color:var(--success);}
 .opt.wrong{border-color:var(--danger);background:#231212;color:var(--danger);}
 .opt:disabled{cursor:default;}
+.opt.removed{opacity:0.25;pointer-events:none;text-decoration:line-through;}
+
+.hint-btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  background:transparent;border:1px dashed var(--gold-dim);color:var(--gold);
+  border-radius:20px;padding:8px 14px;font-size:13px;font-family:inherit;
+  cursor:pointer;margin:0 auto 18px;
+}
+.hint-btn:hover{background:var(--surface2);}
+.hint-btn:disabled{opacity:0.35;cursor:not-allowed;border-style:solid;}
 
 .text-input{
   width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);
@@ -217,15 +227,25 @@ body{
     <div class="lang-grid" id="langGrid"></div>
   </div>
 
+  <!-- SCREEN: UNITS LIST -->
+  <div id="screen-units" class="hidden">
+    <div class="hero" style="margin-bottom:16px;">
+      <h1 class="display" id="unitsLangTitle" style="font-size:24px;">Unita</h1>
+      <p>Scegli un'unita da studiare.</p>
+    </div>
+    <div class="lang-grid" id="unitsList"></div>
+    <button class="btn btn-ghost" id="backHomeFromUnitsBtn" style="margin-top:16px;">Cambia lingua</button>
+  </div>
+
   <!-- SCREEN: LESSON INTRO -->
   <div id="screen-intro" class="hidden">
     <div class="lesson-card">
-      <div class="unit-eyebrow">Unita 1</div>
+      <div class="unit-eyebrow" id="introEyebrow">Unita 1</div>
       <h2 class="display" id="introTitle">Le basi</h2>
-      <p>10 parole nuove, frasi da tradurre, esercizi d'ascolto e di abbinamento.</p>
+      <p>Parole nuove, frasi da tradurre, esercizi d'ascolto e di abbinamento.</p>
       <div class="word-preview" id="wordPreview"></div>
       <button class="btn" id="startLessonBtn">Inizia lezione</button>
-      <button class="btn btn-ghost" id="backHomeBtn">Cambia lingua</button>
+      <button class="btn btn-ghost" id="backHomeBtn">Torna alle unita</button>
     </div>
   </div>
 
@@ -296,51 +316,147 @@ const HEART_SVG = (filled) => `<svg class="heart" viewBox="0 0 24 24"><path d="M
 
 /* ---------------- Language data ---------------- */
 const DATA = {
-  en: { name:'Inglese', flag:'🇬🇧', voice:'en-US',
-    words:[
-      {w:'apple',t:'mela',e:'🍎'},{w:'water',t:'acqua',e:'💧'},{w:'house',t:'casa',e:'🏠'},
-      {w:'dog',t:'cane',e:'🐕'},{w:'friend',t:'amico',e:'🧑‍🤝‍🧑'},{w:'book',t:'libro',e:'📖'},
-      {w:'sun',t:'sole',e:'☀️'},{w:'bread',t:'pane',e:'🍞'},{w:'car',t:'macchina',e:'🚗'},{w:'cat',t:'gatto',e:'🐈'}
-    ],
-    sentences:[
-      {it:'Come stai?', ans:'How are you'},
-      {it:'Mi chiamo Franco', ans:'My name is Franco'},
-      {it:'Dove abiti?', ans:'Where do you live'},
-      {it:'Ho fame', ans:'I am hungry'},
-      {it:'Buongiorno a tutti', ans:'Good morning everyone'},
-      {it:'Questo e il mio cane', ans:'This is my dog'}
-    ]
-  },
-  es: { name:'Spagnolo', flag:'🇪🇸', voice:'es-ES',
-    words:[
-      {w:'manzana',t:'mela',e:'🍎'},{w:'agua',t:'acqua',e:'💧'},{w:'casa',t:'casa',e:'🏠'},
-      {w:'perro',t:'cane',e:'🐕'},{w:'amigo',t:'amico',e:'🧑‍🤝‍🧑'},{w:'libro',t:'libro',e:'📖'},
-      {w:'sol',t:'sole',e:'☀️'},{w:'pan',t:'pane',e:'🍞'},{w:'coche',t:'macchina',e:'🚗'},{w:'gato',t:'gatto',e:'🐈'}
-    ],
-    sentences:[
-      {it:'Come stai?', ans:'Como estas'},
-      {it:'Mi chiamo Franco', ans:'Me llamo Franco'},
-      {it:'Dove abiti?', ans:'Donde vives'},
-      {it:'Ho fame', ans:'Tengo hambre'},
-      {it:'Buongiorno a tutti', ans:'Buenos dias a todos'},
-      {it:'Questo e il mio cane', ans:'Este es mi perro'}
-    ]
-  },
-  fr: { name:'Francese', flag:'🇫🇷', voice:'fr-FR',
-    words:[
-      {w:'pomme',t:'mela',e:'🍎'},{w:'eau',t:'acqua',e:'💧'},{w:'maison',t:'casa',e:'🏠'},
-      {w:'chien',t:'cane',e:'🐕'},{w:'ami',t:'amico',e:'🧑‍🤝‍🧑'},{w:'livre',t:'libro',e:'📖'},
-      {w:'soleil',t:'sole',e:'☀️'},{w:'pain',t:'pane',e:'🍞'},{w:'voiture',t:'macchina',e:'🚗'},{w:'chat',t:'gatto',e:'🐈'}
-    ],
-    sentences:[
-      {it:'Come stai?', ans:'Comment vas tu'},
-      {it:'Mi chiamo Franco', ans:'Je m appelle Franco'},
-      {it:'Dove abiti?', ans:'Ou habites tu'},
-      {it:'Ho fame', ans:"J'ai faim"},
-      {it:'Buongiorno a tutti', ans:'Bonjour a tous'},
-      {it:'Questo e il mio cane', ans:'C est mon chien'}
-    ]
-  }
+  en: { name:'Inglese', flag:'🇬🇧', voice:'en-US', units:[
+    { title:'Le basi',
+      words:[
+        {w:'apple',t:'mela',e:'🍎'},{w:'water',t:'acqua',e:'💧'},{w:'house',t:'casa',e:'🏠'},
+        {w:'dog',t:'cane',e:'🐕'},{w:'friend',t:'amico',e:'🧑‍🤝‍🧑'},{w:'book',t:'libro',e:'📖'},
+        {w:'sun',t:'sole',e:'☀️'},{w:'bread',t:'pane',e:'🍞'},{w:'car',t:'macchina',e:'🚗'},{w:'cat',t:'gatto',e:'🐈'}
+      ],
+      sentences:[
+        {it:'Come stai?', ans:'How are you'},
+        {it:'Mi chiamo Federico', ans:'My name is Federico'},
+        {it:'Dove abiti?', ans:'Where do you live'},
+        {it:'Ho fame', ans:'I am hungry'},
+        {it:'Buongiorno a tutti', ans:'Good morning everyone'},
+        {it:'Questo e il mio cane', ans:'This is my dog'}
+      ]
+    },
+    { title:'Cibo e animali',
+      words:[
+        {w:'cheese',t:'formaggio',e:'🧀'},{w:'milk',t:'latte',e:'🥛'},{w:'egg',t:'uovo',e:'🥚'},
+        {w:'fish',t:'pesce',e:'🐟'},{w:'bird',t:'uccello',e:'🐦'},{w:'horse',t:'cavallo',e:'🐴'},
+        {w:'chicken',t:'pollo',e:'🐔'},{w:'rice',t:'riso',e:'🍚'},{w:'banana',t:'banana',e:'🍌'},{w:'meat',t:'carne',e:'🥩'}
+      ],
+      sentences:[
+        {it:'Mi piace il formaggio', ans:'I like cheese'},
+        {it:'Ho un gatto e un cane', ans:'I have a cat and a dog'},
+        {it:'Voglio del latte', ans:'I want some milk'},
+        {it:'Il pesce nuota', ans:'The fish swims'},
+        {it:'Mangio riso e pollo', ans:'I eat rice and chicken'},
+        {it:'Il cavallo corre veloce', ans:'The horse runs fast'}
+      ]
+    },
+    { title:'Numeri e colori',
+      words:[
+        {w:'one',t:'uno',e:'1️⃣'},{w:'two',t:'due',e:'2️⃣'},{w:'three',t:'tre',e:'3️⃣'},
+        {w:'four',t:'quattro',e:'4️⃣'},{w:'five',t:'cinque',e:'5️⃣'},{w:'red',t:'rosso',e:'🔴'},
+        {w:'blue',t:'blu',e:'🔵'},{w:'green',t:'verde',e:'🟢'},{w:'yellow',t:'giallo',e:'🟡'},{w:'black',t:'nero',e:'⚫'}
+      ],
+      sentences:[
+        {it:'Ho tre amici', ans:'I have three friends'},
+        {it:'La mia macchina e rossa', ans:'My car is red'},
+        {it:'Il cielo e blu', ans:'The sky is blue'},
+        {it:'Ho cinque libri', ans:'I have five books'},
+        {it:'Mi piace il colore verde', ans:'I like the color green'},
+        {it:'Due piu due fa quattro', ans:'Two plus two is four'}
+      ]
+    }
+  ]},
+  es: { name:'Spagnolo', flag:'🇪🇸', voice:'es-ES', units:[
+    { title:'Le basi',
+      words:[
+        {w:'manzana',t:'mela',e:'🍎'},{w:'agua',t:'acqua',e:'💧'},{w:'casa',t:'casa',e:'🏠'},
+        {w:'perro',t:'cane',e:'🐕'},{w:'amigo',t:'amico',e:'🧑‍🤝‍🧑'},{w:'libro',t:'libro',e:'📖'},
+        {w:'sol',t:'sole',e:'☀️'},{w:'pan',t:'pane',e:'🍞'},{w:'coche',t:'macchina',e:'🚗'},{w:'gato',t:'gatto',e:'🐈'}
+      ],
+      sentences:[
+        {it:'Come stai?', ans:'Como estas'},
+        {it:'Mi chiamo Federico', ans:'Me llamo Federico'},
+        {it:'Dove abiti?', ans:'Donde vives'},
+        {it:'Ho fame', ans:'Tengo hambre'},
+        {it:'Buongiorno a tutti', ans:'Buenos dias a todos'},
+        {it:'Questo e il mio cane', ans:'Este es mi perro'}
+      ]
+    },
+    { title:'Cibo e animali',
+      words:[
+        {w:'queso',t:'formaggio',e:'🧀'},{w:'leche',t:'latte',e:'🥛'},{w:'huevo',t:'uovo',e:'🥚'},
+        {w:'pez',t:'pesce',e:'🐟'},{w:'pajaro',t:'uccello',e:'🐦'},{w:'caballo',t:'cavallo',e:'🐴'},
+        {w:'pollo',t:'pollo',e:'🐔'},{w:'arroz',t:'riso',e:'🍚'},{w:'platano',t:'banana',e:'🍌'},{w:'carne',t:'carne',e:'🥩'}
+      ],
+      sentences:[
+        {it:'Mi piace il formaggio', ans:'Me gusta el queso'},
+        {it:'Ho un gatto e un cane', ans:'Tengo un gato y un perro'},
+        {it:'Voglio del latte', ans:'Quiero leche'},
+        {it:'Il pesce nuota', ans:'El pez nada'},
+        {it:'Mangio riso e pollo', ans:'Como arroz y pollo'},
+        {it:'Il cavallo corre veloce', ans:'El caballo corre rapido'}
+      ]
+    },
+    { title:'Numeri e colori',
+      words:[
+        {w:'uno',t:'uno',e:'1️⃣'},{w:'dos',t:'due',e:'2️⃣'},{w:'tres',t:'tre',e:'3️⃣'},
+        {w:'cuatro',t:'quattro',e:'4️⃣'},{w:'cinco',t:'cinque',e:'5️⃣'},{w:'rojo',t:'rosso',e:'🔴'},
+        {w:'azul',t:'blu',e:'🔵'},{w:'verde',t:'verde',e:'🟢'},{w:'amarillo',t:'giallo',e:'🟡'},{w:'negro',t:'nero',e:'⚫'}
+      ],
+      sentences:[
+        {it:'Ho tre amici', ans:'Tengo tres amigos'},
+        {it:'La mia macchina e rossa', ans:'Mi coche es rojo'},
+        {it:'Il cielo e blu', ans:'El cielo es azul'},
+        {it:'Ho cinque libri', ans:'Tengo cinco libros'},
+        {it:'Mi piace il colore verde', ans:'Me gusta el color verde'},
+        {it:'Due piu due fa quattro', ans:'Dos mas dos es cuatro'}
+      ]
+    }
+  ]},
+  fr: { name:'Francese', flag:'🇫🇷', voice:'fr-FR', units:[
+    { title:'Le basi',
+      words:[
+        {w:'pomme',t:'mela',e:'🍎'},{w:'eau',t:'acqua',e:'💧'},{w:'maison',t:'casa',e:'🏠'},
+        {w:'chien',t:'cane',e:'🐕'},{w:'ami',t:'amico',e:'🧑‍🤝‍🧑'},{w:'livre',t:'libro',e:'📖'},
+        {w:'soleil',t:'sole',e:'☀️'},{w:'pain',t:'pane',e:'🍞'},{w:'voiture',t:'macchina',e:'🚗'},{w:'chat',t:'gatto',e:'🐈'}
+      ],
+      sentences:[
+        {it:'Come stai?', ans:'Comment vas tu'},
+        {it:'Mi chiamo Federico', ans:'Je m appelle Federico'},
+        {it:'Dove abiti?', ans:'Ou habites tu'},
+        {it:'Ho fame', ans:"J'ai faim"},
+        {it:'Buongiorno a tutti', ans:'Bonjour a tous'},
+        {it:'Questo e il mio cane', ans:'C est mon chien'}
+      ]
+    },
+    { title:'Cibo e animali',
+      words:[
+        {w:'fromage',t:'formaggio',e:'🧀'},{w:'lait',t:'latte',e:'🥛'},{w:'oeuf',t:'uovo',e:'🥚'},
+        {w:'poisson',t:'pesce',e:'🐟'},{w:'oiseau',t:'uccello',e:'🐦'},{w:'cheval',t:'cavallo',e:'🐴'},
+        {w:'poulet',t:'pollo',e:'🐔'},{w:'riz',t:'riso',e:'🍚'},{w:'banane',t:'banana',e:'🍌'},{w:'viande',t:'carne',e:'🥩'}
+      ],
+      sentences:[
+        {it:'Mi piace il formaggio', ans:"J'aime le fromage"},
+        {it:'Ho un gatto e un cane', ans:"J'ai un chat et un chien"},
+        {it:'Voglio del latte', ans:'Je veux du lait'},
+        {it:'Il pesce nuota', ans:'Le poisson nage'},
+        {it:'Mangio riso e pollo', ans:'Je mange du riz et du poulet'},
+        {it:'Il cavallo corre veloce', ans:'Le cheval court vite'}
+      ]
+    },
+    { title:'Numeri e colori',
+      words:[
+        {w:'un',t:'uno',e:'1️⃣'},{w:'deux',t:'due',e:'2️⃣'},{w:'trois',t:'tre',e:'3️⃣'},
+        {w:'quatre',t:'quattro',e:'4️⃣'},{w:'cinq',t:'cinque',e:'5️⃣'},{w:'rouge',t:'rosso',e:'🔴'},
+        {w:'bleu',t:'blu',e:'🔵'},{w:'vert',t:'verde',e:'🟢'},{w:'jaune',t:'giallo',e:'🟡'},{w:'noir',t:'nero',e:'⚫'}
+      ],
+      sentences:[
+        {it:'Ho tre amici', ans:"J'ai trois amis"},
+        {it:'La mia macchina e rossa', ans:'Ma voiture est rouge'},
+        {it:'Il cielo e blu', ans:'Le ciel est bleu'},
+        {it:'Ho cinque libri', ans:"J'ai cinq livres"},
+        {it:'Mi piace il colore verde', ans:"J'aime la couleur verte"},
+        {it:'Due piu due fa quattro', ans:'Deux plus deux font quatre'}
+      ]
+    }
+  ]}
 };
 
 /* ---------------- Google login config ---------------- */
@@ -349,9 +465,10 @@ const CONFIG = { GOOGLE_CLIENT_ID: 'INSERISCI_QUI_IL_TUO_CLIENT_ID.apps.googleus
 
 /* ---------------- State ---------------- */
 let state = {
-  user:null, lang:null, queue:[], idx:0, hearts:3, xp:0, correctCount:0,
-  streak:0, maxStreak:0, answered:false, totalXP:0
+  user:null, lang:null, unitIndex:0, queue:[], idx:0, hearts:3, xp:0, correctCount:0,
+  streak:0, maxStreak:0, answered:false, totalXP:0, hintUsed:false
 };
+const HINT_COST = 15;
 
 function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
 function pickDistractors(list, excludeIdx, key, count){
@@ -361,26 +478,26 @@ function pickDistractors(list, excludeIdx, key, count){
 function normalize(s){ return s.toLowerCase().replace(/[.,!?']/g,'').replace(/\s+/g,' ').trim(); }
 
 /* ---------------- Build lesson queue ---------------- */
-function buildQueue(langCode){
-  const data = DATA[langCode];
+function buildQueue(langCode, unitIndex){
+  const unit = DATA[langCode].units[unitIndex];
   const ex = [];
-  data.words.forEach((word, i) => {
-    ex.push({ type:'mc', word, options: shuffle([word.t, ...pickDistractors(data.words, i, 't', 3)]) });
+  unit.words.forEach((word, i) => {
+    ex.push({ type:'mc', word, options: shuffle([word.t, ...pickDistractors(unit.words, i, 't', 3)]) });
   });
-  data.words.forEach((word, i) => {
-    ex.push({ type:'listen', word, options: shuffle([word.w, ...pickDistractors(data.words, i, 'w', 3)]) });
+  unit.words.forEach((word, i) => {
+    ex.push({ type:'listen', word, options: shuffle([word.w, ...pickDistractors(unit.words, i, 'w', 3)]) });
   });
-  data.words.forEach((word, i) => {
-    ex.push({ type:'match', word, options: shuffle([word.e, ...pickDistractors(data.words, i, 'e', 3)]) });
+  unit.words.forEach((word, i) => {
+    ex.push({ type:'match', word, options: shuffle([word.e, ...pickDistractors(unit.words, i, 'e', 3)]) });
   });
-  data.sentences.forEach((s) => {
+  unit.sentences.forEach((s) => {
     ex.push({ type:'translate', sentence: s });
   });
   return shuffle(ex);
 }
 
 /* ---------------- Screens ---------------- */
-const screens = ['login','home','intro','exercise','result','gameover'];
+const screens = ['login','home','units','intro','exercise','result','gameover'];
 function showScreen(name){
   screens.forEach(s => document.getElementById('screen-'+s).classList.toggle('hidden', s!==name));
 }
@@ -392,23 +509,42 @@ function renderHome(){
   Object.entries(DATA).forEach(([code, d]) => {
     const card = document.createElement('div');
     card.className = 'lang-card';
-    card.innerHTML = `<div class="flag">${d.flag}</div><div class="info"><b>${d.name}</b><small>10 parole &middot; 6 frasi &middot; unita 1</small></div><div class="arrow">&#8250;</div>`;
-    card.onclick = () => openIntro(code);
+    card.innerHTML = `<div class="flag">${d.flag}</div><div class="info"><b>${d.name}</b><small>${d.units.length} unita disponibili</small></div><div class="arrow">&#8250;</div>`;
+    card.onclick = () => openUnits(code);
     grid.appendChild(card);
   });
 }
 
-function openIntro(code){
+function openUnits(code){
   state.lang = code;
   const d = DATA[code];
-  document.getElementById('introTitle').textContent = 'Le basi — ' + d.name;
+  document.getElementById('unitsLangTitle').textContent = d.name;
+  const list = document.getElementById('unitsList');
+  list.innerHTML = '';
+  d.units.forEach((unit, i) => {
+    const card = document.createElement('div');
+    card.className = 'lang-card';
+    card.innerHTML = `<div class="flag">${i+1}</div><div class="info"><b>${unit.title}</b><small>${unit.words.length} parole &middot; ${unit.sentences.length} frasi</small></div><div class="arrow">&#8250;</div>`;
+    card.onclick = () => openIntro(code, i);
+    list.appendChild(card);
+  });
+  showScreen('units');
+}
+
+function openIntro(code, unitIndex){
+  state.lang = code;
+  state.unitIndex = unitIndex;
+  const d = DATA[code];
+  const unit = d.units[unitIndex];
+  document.getElementById('introEyebrow').textContent = 'Unita ' + (unitIndex + 1);
+  document.getElementById('introTitle').textContent = unit.title + ' — ' + d.name;
   const prev = document.getElementById('wordPreview');
-  prev.innerHTML = d.words.slice(0,6).map(w => `<span>${w.e}</span>`).join('');
+  prev.innerHTML = unit.words.slice(0,6).map(w => `<span>${w.e}</span>`).join('');
   showScreen('intro');
 }
 
 function startLesson(){
-  state.queue = buildQueue(state.lang);
+  state.queue = buildQueue(state.lang, state.unitIndex);
   state.idx = 0; state.hearts = 3; state.xp = 0; state.correctCount = 0;
   state.streak = 0; state.maxStreak = 0;
   showScreen('exercise');
@@ -426,6 +562,7 @@ function renderProgress(){
 function renderExercise(){
   renderHearts(); renderProgress();
   state.answered = false;
+  state.hintUsed = false;
   const item = state.queue[state.idx];
   const body = document.getElementById('exerciseBody');
   const d = DATA[state.lang];
@@ -438,6 +575,7 @@ function renderExercise(){
         ${item.options.map(o => `<button class="opt" data-val="${o}">${o}</button>`).join('')}
       </div>`;
     attachOptionHandlers(item.word.t);
+    addHintButton(item.word.t);
   }
   else if(item.type === 'listen'){
     body.innerHTML = `
@@ -449,6 +587,7 @@ function renderExercise(){
       </div>`;
     document.getElementById('playBtn').onclick = () => speak(item.word.w, d.voice);
     attachOptionHandlers(item.word.w);
+    addHintButton(item.word.w);
     speak(item.word.w, d.voice);
   }
   else if(item.type === 'match'){
@@ -460,6 +599,7 @@ function renderExercise(){
         ${item.options.map(o => `<button class="opt emoji-opt" data-val="${o}">${o}</button>`).join('')}
       </div>`;
     attachOptionHandlers(item.word.e);
+    addHintButton(item.word.e);
   }
   else if(item.type === 'translate'){
     body.innerHTML = `
@@ -497,6 +637,35 @@ function attachOptionHandlers(correctVal){
       finishAnswer(isCorrect, correctVal);
     };
   });
+}
+
+function addHintButton(correctVal){
+  const body = document.getElementById('exerciseBody');
+  const btn = document.createElement('button');
+  btn.className = 'hint-btn';
+  btn.id = 'hintBtn';
+  if(state.totalXP < HINT_COST){
+    btn.textContent = `Ti servono ${HINT_COST - state.totalXP} XP in piu per usare l'aiuto`;
+    btn.disabled = true;
+  } else {
+    btn.textContent = `Elimina una risposta sbagliata (-${HINT_COST} XP)`;
+  }
+  btn.onclick = () => {
+    if(state.hintUsed || state.answered) return;
+    const wrongOpts = Array.from(document.querySelectorAll('#optWrap .opt'))
+      .filter(o => o.dataset.val !== correctVal && !o.classList.contains('removed'));
+    if(wrongOpts.length === 0) return;
+    const pick = wrongOpts[Math.floor(Math.random() * wrongOpts.length)];
+    pick.classList.add('removed');
+    pick.disabled = true;
+    state.hintUsed = true;
+    state.totalXP -= HINT_COST;
+    saveTotalXP();
+    updateXpBadge();
+    btn.disabled = true;
+    btn.textContent = 'Aiuto usato';
+  };
+  body.appendChild(btn);
 }
 
 function checkTranslation(item){
@@ -629,10 +798,11 @@ document.getElementById('logoutBtn').onclick = () => {
 
 /* ---------------- Nav events ---------------- */
 document.getElementById('startLessonBtn').onclick = startLesson;
-document.getElementById('backHomeBtn').onclick = () => showScreen('home');
-document.getElementById('continueBtn').onclick = () => showScreen('home');
+document.getElementById('backHomeBtn').onclick = () => openUnits(state.lang);
+document.getElementById('backHomeFromUnitsBtn').onclick = () => { renderHome(); showScreen('home'); };
+document.getElementById('continueBtn').onclick = () => openUnits(state.lang);
 document.getElementById('retryBtn').onclick = startLesson;
-document.getElementById('goHomeBtn2').onclick = () => showScreen('home');
+document.getElementById('goHomeBtn2').onclick = () => { renderHome(); showScreen('home'); };
 
 initLogin();
 showScreen('login');
