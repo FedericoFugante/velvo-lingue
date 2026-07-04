@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Velvo Lingue</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23e8c46a'/%3E%3Ccircle cx='38' cy='46' r='9' fill='%230a0a0a'/%3E%3Ccircle cx='62' cy='46' r='9' fill='%230a0a0a'/%3E%3Cpath d='M40 62 L50 70 L60 62 Z' fill='%23c9832e'/%3E%3C/svg%3E">
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
   --bg:#0a0a0a;
@@ -48,11 +47,49 @@ body{
 .login-wrap p{color:var(--text-dim);font-size:14px;margin-bottom:30px;}
 #googleBtnWrap{display:flex;justify-content:center;margin-bottom:14px;}
 .login-note{font-size:12px;color:var(--text-dim);margin-top:18px;line-height:1.5;}
+.auth-tabs{display:flex;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px;margin-bottom:20px;}
+.auth-tab{flex:1;background:none;border:none;padding:10px;border-radius:16px;font-size:14px;color:var(--text-dim);font-family:inherit;cursor:pointer;}
+.auth-tab.active{background:var(--gold);color:#1a1305;font-weight:500;}
+.auth-error{background:#231212;border:1px solid var(--danger);color:var(--danger);font-size:13px;border-radius:10px;padding:10px 14px;margin-bottom:16px;text-align:left;}
+.link-btn{background:none;border:none;color:var(--gold);font-size:13px;text-decoration:underline;cursor:pointer;font-family:inherit;}
+#forgotWrap{margin-top:18px;text-align:left;}
+select.text-input{-webkit-appearance:none;appearance:none;}
 .user-chip{display:none;align-items:center;gap:8px;}
 .user-chip.active{display:flex;}
 .user-chip img{width:28px;height:28px;border-radius:50%;border:1px solid var(--gold-dim);}
 .user-chip .logout{font-size:11px;color:var(--text-dim);cursor:pointer;background:none;border:none;font-family:inherit;text-decoration:underline;}
-.xp-badge{background:var(--surface2);border:1px solid var(--gold-dim);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--gold);white-space:nowrap;}
+.header-chips{display:flex;align-items:center;gap:8px;}
+.xp-badge{background:var(--surface2);border:1px solid var(--gold-dim);border-radius:20px;padding:4px 10px;font-size:12px;color:var(--gold);white-space:nowrap;font-family:inherit;cursor:pointer;}
+.xp-badge:hover{background:var(--surface);}
+.streak-badge{background:var(--surface2);border:1px solid var(--gold-dim);border-radius:20px;padding:4px 10px;font-size:12px;color:#ff8a3d;white-space:nowrap;display:flex;align-items:center;gap:4px;font-family:inherit;cursor:default;}
+.flame-icon{width:11px;height:11px;}
+
+/* ---- Profile ---- */
+.profile-wrap{text-align:center;margin-top:10px;}
+.profile-stat-row{display:flex;gap:10px;margin-bottom:26px;}
+.profile-stat-box{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 8px;}
+.profile-stat-box .num{font-family:Georgia,serif;font-size:26px;color:var(--gold);margin-top:6px;}
+.profile-stat-box .lab{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-top:4px;}
+.profile-langs{display:flex;flex-direction:column;gap:10px;margin-bottom:24px;text-align:left;}
+.profile-lang-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;}
+.profile-lang-card .plc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.profile-lang-card .plc-top b{font-size:15px;}
+.profile-lang-card .plc-top span{font-size:12px;color:var(--text-dim);}
+.plc-track{height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;}
+.plc-fill{height:100%;background:var(--gold);border-radius:4px;}
+
+/* ---- Streak calendar ---- */
+.flame-icon-big{width:64px;height:64px;margin:0 auto;display:block;}
+.streak-week{display:flex;justify-content:center;gap:8px;}
+.streak-day{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.streak-day .day-lab{font-size:11px;color:var(--text-dim);text-transform:uppercase;}
+.streak-day .day-circle{
+  width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--surface);border:1.5px solid var(--border);
+}
+.streak-day.done .day-circle{background:#2a1a0a;border-color:#ff8a3d;}
+.streak-day.today .day-circle{border-color:var(--gold);border-width:2px;}
+.streak-day .day-circle svg{width:18px;height:18px;}
 
 /* ---- Landing ---- */
 .hero{text-align:center;margin:18px 0 30px;}
@@ -198,27 +235,61 @@ body{
       <span>VELVO LINGUE</span>
     </div>
 
-    <div class="user-chip" id="userChip">
-      <div class="xp-badge" id="xpBadge">&#11088; 0 XP</div>
-      <img id="userAvatar" src="" alt="">
-      <span id="userName" style="font-size:13px;"></span>
-      <button class="logout" id="logoutBtn">esci</button>
+    <div class="header-chips">
+      <button class="streak-badge" id="streakBadge">
+        <svg class="flame-icon" viewBox="0 0 24 24"><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c0-1-1-2-1-3 2 1 3 3 3 5a5 5 0 0 1-10 0c0-4 3-6 3-8 0-1 1-2 2-2z" fill="url(#flameGrad)"/><defs><linearGradient id="flameGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ffd76a"/><stop offset="60%" stop-color="#ff8a3d"/><stop offset="100%" stop-color="#e0574f"/></linearGradient></defs></svg>
+        <span id="streakCount">0</span>
+      </button>
+      <button class="xp-badge" id="xpBadge" title="Vedi il tuo profilo">&#11088; 0 XP</button>
     </div>
   </div>
 
-  <!-- SCREEN: LOGIN -->
-  <div id="screen-login">
-    <div class="login-wrap">
-      <div class="mascot-wrap">__MASCOT_SVG__</div>
-      <h1 class="display">Bentornato</h1>
-      <p>Accedi con Google per iniziare a studiare.</p>
-      <div id="googleBtnWrap"></div>
-      <div class="login-note" id="loginNote"></div>
+  <!-- SCREEN: STREAK CALENDAR -->
+  <div id="screen-streak" class="hidden">
+    <div class="profile-wrap">
+      <svg class="flame-icon-big" viewBox="0 0 24 24"><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c0-1-1-2-1-3 2 1 3 3 3 5a5 5 0 0 1-10 0c0-4 3-6 3-8 0-1 1-2 2-2z" fill="url(#flameGrad)"/></svg>
+      <h1 class="display" style="font-size:34px;color:#ff8a3d;margin:8px 0 2px;" id="streakBigNumber">0</h1>
+      <p style="color:var(--text-dim);font-size:14px;margin-bottom:26px;" id="streakSub">giorni di fila</p>
+
+      <div class="streak-week" id="streakWeek"></div>
+
+      <p style="color:var(--text-dim);font-size:13px;margin:20px 0 26px;" id="streakHint"></p>
+
+      <button class="btn btn-ghost" id="closeStreakBtn">Torna alla home</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: PROFILE -->
+  <div id="screen-profile" class="hidden">
+    <div class="profile-wrap">
+      <div class="mascot-wrap" style="width:150px;height:150px;margin:0 auto 14px;">__MASCOT_SVG__</div>
+      <h1 class="display" style="font-size:24px;color:var(--gold-bright);margin-bottom:4px;">Il tuo profilo</h1>
+      <p style="color:var(--text-dim);font-size:14px;margin-bottom:26px;">Le tue statistiche su Velvo Lingue</p>
+
+      <div class="profile-stat-row">
+        <div class="profile-stat-box">
+          <svg class="flame-icon" style="width:22px;height:22px;" viewBox="0 0 24 24"><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c0-1-1-2-1-3 2 1 3 3 3 5a5 5 0 0 1-10 0c0-4 3-6 3-8 0-1 1-2 2-2z" fill="url(#flameGrad)"/></svg>
+          <div class="num" id="profileStreak">0</div>
+          <div class="lab">Streak (giorni)</div>
+        </div>
+        <div class="profile-stat-box">
+          <div class="num" id="profileXP">0</div>
+          <div class="lab">XP totali</div>
+        </div>
+        <div class="profile-stat-box">
+          <div class="num" id="profileUnits">0</div>
+          <div class="lab">Unita completate</div>
+        </div>
+      </div>
+
+      <div class="profile-langs" id="profileLangs"></div>
+
+      <button class="btn btn-ghost" id="closeProfileBtn">Torna alla home</button>
     </div>
   </div>
 
   <!-- SCREEN: HOME -->
-  <div id="screen-home" class="hidden">
+  <div id="screen-home">
     <div class="hero">
       <div class="mascot-wrap">__MASCOT_SVG__</div>
       <h1 class="display">Impara una lingua nuova</h1>
@@ -460,14 +531,10 @@ const DATA = {
   ]}
 };
 
-/* ---------------- Google login config ---------------- */
-/* Sostituisci con il tuo Client ID da Google Cloud Console (vedi guida) */
-const CONFIG = { GOOGLE_CLIENT_ID: 'INSERISCI_QUI_IL_TUO_CLIENT_ID.apps.googleusercontent.com' };
-
 /* ---------------- State ---------------- */
 let state = {
-  user:null, lang:null, unitIndex:0, queue:[], idx:0, hearts:3, xp:0, correctCount:0,
-  streak:0, maxStreak:0, answered:false, totalXP:0, hintUsed:false
+  lang:null, unitIndex:0, queue:[], idx:0, hearts:3, xp:0, correctCount:0,
+  streak:0, maxStreak:0, answered:false, totalXP:0, hintUsed:false, streakDays:0
 };
 const HINT_COST = 15;
 
@@ -498,7 +565,7 @@ function buildQueue(langCode, unitIndex){
 }
 
 /* ---------------- Screens ---------------- */
-const screens = ['login','home','units','intro','exercise','result','gameover'];
+const screens = ['home','profile','units','intro','exercise','result','gameover'];
 function showScreen(name){
   screens.forEach(s => document.getElementById('screen-'+s).classList.toggle('hidden', s!==name));
 }
@@ -719,6 +786,8 @@ function finishLesson(){
   state.totalXP += state.xp;
   saveTotalXP();
   updateXpBadge();
+  updateStreakOnLessonComplete();
+  markUnitCompleted(state.lang, state.unitIndex);
   document.getElementById('progressFill').style.width = '100%';
   document.getElementById('statXP').textContent = state.xp;
   document.getElementById('statCorrect').textContent = state.correctCount + '/' + state.queue.length;
@@ -729,73 +798,137 @@ function finishLesson(){
   showScreen('result');
 }
 
-/* ---------------- Persistence (total XP) ---------------- */
+/* ---------------- Persistence: XP + streak (no account needed) ---------------- */
 const XP_KEY = 'velvoLingueTotalXP';
+const STREAK_KEY = 'velvoLingueStreak';
+
 function loadTotalXP(){
-  try{
-    const raw = localStorage.getItem(XP_KEY);
-    return raw ? parseInt(raw, 10) || 0 : 0;
-  } catch(e){ return 0; }
+  try{ return parseInt(localStorage.getItem(XP_KEY), 10) || 0; }
+  catch(e){ return 0; }
 }
 function saveTotalXP(){
   try{ localStorage.setItem(XP_KEY, String(state.totalXP)); } catch(e){ /* storage unavailable */ }
 }
-function initLogin(){
-  const wrap = document.getElementById('googleBtnWrap');
-  const note = document.getElementById('loginNote');
-  wrap.innerHTML = '';
-  if(CONFIG.GOOGLE_CLIENT_ID.startsWith('INSERISCI')){
-    const demoBtn = document.createElement('button');
-    demoBtn.className = 'btn';
-    demoBtn.textContent = 'Continua';
-    demoBtn.onclick = () => { state.user = { name:'Ospite', picture:'' }; afterLogin(); };
-    wrap.appendChild(demoBtn);
-    return;
+
+function todayStr(){
+  return new Date().toISOString().slice(0,10);
+}
+function loadStreakData(){
+  try{
+    const d = JSON.parse(localStorage.getItem(STREAK_KEY) || 'null') || { count:0, lastDate:null, history:[] };
+    if(!d.history) d.history = [];
+    return d;
   }
-  note.textContent = '';
-  if(!window.google || !google.accounts){ note.textContent = 'Impossibile caricare Google Sign-In (controlla la connessione).'; return; }
-  google.accounts.id.initialize({ client_id: CONFIG.GOOGLE_CLIENT_ID, callback: handleCredentialResponse });
-  google.accounts.id.renderButton(wrap, { theme:'filled_black', size:'large', shape:'pill', text:'continue_with' });
+  catch(e){ return { count:0, lastDate:null, history:[] }; }
+}
+function saveStreakData(data){
+  try{ localStorage.setItem(STREAK_KEY, JSON.stringify(data)); } catch(e){ /* storage unavailable */ }
+}
+function updateStreakOnLessonComplete(){
+  const data = loadStreakData();
+  const today = todayStr();
+  if(data.lastDate !== today){
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+    data.count = (data.lastDate === yesterday) ? data.count + 1 : 1;
+    data.lastDate = today;
+  }
+  if(!data.history.includes(today)) data.history.push(today);
+  data.history = data.history.slice(-30);
+  saveStreakData(data);
+  state.streakDays = data.count;
+  updateStreakBadge();
+}
+function updateStreakBadge(){
+  document.getElementById('streakCount').textContent = state.streakDays;
 }
 
-function parseJwt(token){
-  const base64 = token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
-  const json = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-  return JSON.parse(json);
-}
+function openStreakCalendar(){
+  const data = loadStreakData();
+  document.getElementById('streakBigNumber').textContent = state.streakDays;
+  document.getElementById('streakSub').textContent = state.streakDays === 1 ? 'giorno di fila' : 'giorni di fila';
 
-function handleCredentialResponse(response){
-  const payload = parseJwt(response.credential);
-  state.user = { name: payload.given_name || payload.name, picture: payload.picture, email: payload.email };
-  afterLogin();
-}
+  const dayLabels = ['D','L','M','M','G','V','S'];
+  const week = document.getElementById('streakWeek');
+  week.innerHTML = '';
+  const today = new Date();
+  for(let i = 6; i >= 0; i--){
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().slice(0,10);
+    const isToday = i === 0;
+    const done = data.history.includes(dateStr);
+    const cell = document.createElement('div');
+    cell.className = 'streak-day' + (done ? ' done' : '') + (isToday ? ' today' : '');
+    cell.innerHTML = `<div class="day-lab">${dayLabels[d.getDay()]}</div>
+      <div class="day-circle">${done
+        ? '<svg viewBox="0 0 24 24"><path d="M12 2c1 3-3 4-3 8a3 3 0 0 0 6 0c0-1-1-2-1-3 2 1 3 3 3 5a5 5 0 0 1-10 0c0-4 3-6 3-8 0-1 1-2 2-2z" fill="url(#flameGrad)"/></svg>'
+        : `<span style="font-size:12px;color:var(--text-dim);">${d.getDate()}</span>`}
+      </div>`;
+    week.appendChild(cell);
+  }
 
-function afterLogin(){
-  const chip = document.getElementById('userChip');
-  const avatar = document.getElementById('userAvatar');
-  chip.classList.add('active');
-  if(state.user.picture){ avatar.src = state.user.picture; avatar.style.display = 'inline-block'; }
-  else { avatar.style.display = 'none'; }
-  document.getElementById('userName').textContent = state.user.name;
-  state.totalXP = loadTotalXP();
-  updateXpBadge();
-  renderHome();
-  showScreen('home');
-}
+  const hint = document.getElementById('streakHint');
+  hint.textContent = data.lastDate === todayStr()
+    ? 'Hai gia studiato oggi. Continua cosi domani!'
+    : 'Non hai ancora studiato oggi: fai una lezione per continuare la streak.';
 
+  showScreen('streak');
+}
 function updateXpBadge(){
   document.getElementById('xpBadge').innerHTML = '&#11088; ' + state.totalXP + ' XP';
 }
 
-document.getElementById('logoutBtn').onclick = () => {
-  state.user = null;
-  document.getElementById('userChip').classList.remove('active');
-  if(window.google && google.accounts && !CONFIG.GOOGLE_CLIENT_ID.startsWith('INSERISCI')){
-    google.accounts.id.disableAutoSelect();
+function initApp(){
+  state.totalXP = loadTotalXP();
+  state.streakDays = loadStreakData().count;
+  updateXpBadge();
+  updateStreakBadge();
+  renderHome();
+  showScreen('home');
+}
+
+/* ---------------- Completed units tracking ---------------- */
+const COMPLETED_KEY = 'velvoLingueCompleted';
+function loadCompleted(){
+  try{ return JSON.parse(localStorage.getItem(COMPLETED_KEY) || '[]'); }
+  catch(e){ return []; }
+}
+function saveCompleted(list){
+  try{ localStorage.setItem(COMPLETED_KEY, JSON.stringify(list)); } catch(e){ /* storage unavailable */ }
+}
+function markUnitCompleted(langCode, unitIndex){
+  const key = langCode + ':' + unitIndex;
+  const list = loadCompleted();
+  if(!list.includes(key)){
+    list.push(key);
+    saveCompleted(list);
   }
-  showScreen('login');
-  initLogin();
-};
+}
+
+function openProfile(){
+  const completed = loadCompleted();
+  document.getElementById('profileStreak').textContent = state.streakDays;
+  document.getElementById('profileXP').textContent = state.totalXP;
+  document.getElementById('profileUnits').textContent = completed.length;
+
+  const langsWrap = document.getElementById('profileLangs');
+  langsWrap.innerHTML = '';
+  Object.entries(DATA).forEach(([code, d]) => {
+    const doneCount = d.units.filter((_, i) => completed.includes(code + ':' + i)).length;
+    const pct = Math.round((doneCount / d.units.length) * 100);
+    const card = document.createElement('div');
+    card.className = 'profile-lang-card';
+    card.innerHTML = `
+      <div class="plc-top"><b>${d.flag} ${d.name}</b><span>${doneCount}/${d.units.length} unita</span></div>
+      <div class="plc-track"><div class="plc-fill" style="width:${pct}%"></div></div>`;
+    langsWrap.appendChild(card);
+  });
+
+  showScreen('profile');
+}
+
+document.getElementById('xpBadge').onclick = openProfile;
+document.getElementById('closeProfileBtn').onclick = () => { renderHome(); showScreen('home'); };
 
 /* ---------------- Nav events ---------------- */
 document.getElementById('startLessonBtn').onclick = startLesson;
@@ -805,8 +938,7 @@ document.getElementById('continueBtn').onclick = () => openUnits(state.lang);
 document.getElementById('retryBtn').onclick = startLesson;
 document.getElementById('goHomeBtn2').onclick = () => { renderHome(); showScreen('home'); };
 
-initLogin();
-showScreen('login');
+initApp();
 </script>
 </body>
 </html>
