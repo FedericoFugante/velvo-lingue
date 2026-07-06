@@ -80,6 +80,38 @@ select.text-input{-webkit-appearance:none;appearance:none;}
 .plc-track{height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;}
 .plc-fill{height:100%;background:var(--gold);border-radius:4px;}
 
+/* ---- Duolingo-style path ---- */
+.path-container{position:relative;margin:20px auto 0;}
+.path-svg{position:absolute;top:0;left:0;pointer-events:none;}
+.path-node{
+  position:absolute;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  cursor:pointer;background:none;border:none;font-family:inherit;
+}
+.path-node .circle{
+  width:64px;height:64px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--gold);border:4px solid #b8912e;
+  box-shadow:0 6px 0 #8a6a1a;
+  font-size:26px;color:#1a1305;font-family:Georgia,serif;
+  transition:transform .1s;
+}
+.path-node:active .circle{transform:translateY(4px);box-shadow:0 2px 0 #8a6a1a;}
+.path-node.locked .circle{background:var(--surface2);border-color:var(--border);box-shadow:0 6px 0 #241d0e;color:var(--text-dim);cursor:default;}
+.path-node.locked{cursor:default;}
+.path-node.done .circle{background:#2a1a0a;border-color:#ff8a3d;box-shadow:0 6px 0 #7a3a1a;}
+.path-node .node-label{
+  font-size:11px;color:var(--text-dim);text-align:center;max-width:90px;line-height:1.3;
+  background:var(--bg);padding:2px 6px;border-radius:8px;
+}
+.path-node.current .circle{
+  animation:pulseNode 1.6s ease-in-out infinite;
+}
+@keyframes pulseNode{
+  0%,100%{box-shadow:0 6px 0 #8a6a1a, 0 0 0 0 rgba(232,196,106,0.4);}
+  50%{box-shadow:0 6px 0 #8a6a1a, 0 0 0 10px rgba(232,196,106,0);}
+}
+
 /* ---- Streak calendar ---- */
 .flame-icon-big{width:64px;height:64px;margin:0 auto;display:block;}
 .streak-week{display:flex;justify-content:center;gap:8px;}
@@ -303,12 +335,12 @@ select.text-input{-webkit-appearance:none;appearance:none;}
 
   <!-- SCREEN: UNITS LIST -->
   <div id="screen-units" class="hidden">
-    <div class="hero" style="margin-bottom:16px;">
+    <div class="hero" style="margin-bottom:6px;">
       <h1 class="display" id="unitsLangTitle" style="font-size:24px;">Unita</h1>
-      <p>Scegli un'unita da studiare.</p>
+      <p>Segui il percorso, un'unita alla volta.</p>
     </div>
-    <div class="lang-grid" id="unitsList"></div>
-    <button class="btn btn-ghost" id="backHomeFromUnitsBtn" style="margin-top:16px;">Cambia lingua</button>
+    <div class="path-container" id="unitsPath"></div>
+    <button class="btn btn-ghost" id="backHomeFromUnitsBtn" style="margin-top:20px;">Cambia lingua</button>
   </div>
 
   <!-- SCREEN: LESSON INTRO -->
@@ -756,16 +788,52 @@ function openUnits(code){
   state.lang = code;
   const d = DATA[code];
   document.getElementById('unitsLangTitle').textContent = d.name;
-  const list = document.getElementById('unitsList');
-  list.innerHTML = '';
-  d.units.forEach((unit, i) => {
-    const card = document.createElement('div');
-    card.className = 'lang-card';
-    card.innerHTML = `<div class="flag">${i+1}</div><div class="info"><b>${unit.title}</b><small>${unit.words.length} parole &middot; ${unit.sentences.length} frasi</small></div><div class="arrow">&#8250;</div>`;
-    card.onclick = () => openIntro(code, i);
-    list.appendChild(card);
-  });
+  renderPath(code);
   showScreen('units');
+}
+
+function renderPath(code){
+  const d = DATA[code];
+  const completed = loadCompleted();
+  const container = document.getElementById('unitsPath');
+  const n = d.units.length;
+  const width = 300;
+  const spacingY = 130;
+  const topPad = 50;
+  const height = topPad * 2 + (n - 1) * spacingY;
+  const centerX = width / 2;
+  const offsets = [0, 70, 0, -70];
+  const points = [];
+  for(let i = 0; i < n; i++){
+    points.push({ x: centerX + offsets[i % offsets.length], y: topPad + i * spacingY });
+  }
+
+  let dPath = `M ${points[0].x} ${points[0].y}`;
+  for(let i = 1; i < points.length; i++){
+    const prev = points[i-1], curr = points[i];
+    const midY = (prev.y + curr.y) / 2;
+    dPath += ` C ${prev.x} ${midY}, ${curr.x} ${midY}, ${curr.x} ${curr.y}`;
+  }
+
+  container.style.width = width + 'px';
+  container.style.height = height + 'px';
+  container.innerHTML = `<svg class="path-svg" width="${width}" height="${height}"><path d="${dPath}" fill="none" stroke="#3a2f16" stroke-width="6" stroke-linecap="round"/></svg>`;
+
+  d.units.forEach((unit, i) => {
+    const key = code + ':' + i;
+    const isDone = completed.includes(key);
+    const prevDone = i === 0 || completed.includes(code + ':' + (i - 1));
+    const isLocked = !prevDone && !isDone;
+    const isCurrent = !isDone && prevDone;
+
+    const btn = document.createElement('button');
+    btn.className = 'path-node' + (isDone ? ' done' : '') + (isLocked ? ' locked' : '') + (isCurrent ? ' current' : '');
+    btn.style.left = points[i].x + 'px';
+    btn.style.top = points[i].y + 'px';
+    btn.innerHTML = `<div class="circle">${isDone ? '&#10003;' : (isLocked ? '&#128274;' : (i + 1))}</div><div class="node-label">${unit.title}</div>`;
+    if(!isLocked){ btn.onclick = () => openIntro(code, i); }
+    container.appendChild(btn);
+  });
 }
 
 function openIntro(code, unitIndex){
